@@ -1,0 +1,359 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.winit.graph.mapper.GraphRelationMapper">
+    <resultMap type="com.winit.graph.entity.dto.MethodRelationDTO" id="methodRelation">
+        <id property="id" column="id"/>
+        <result property="callType" column="call_type"/>
+        <result property="callerMethodHash" column="caller_method_hash"/>
+        <result property="callerMethodLineNum" column="caller_method_line_num"/>
+        <result property="calleeMethodHash" column="callee_method_hash"/>
+        <result property="appNum" column="app_num"/>
+        <result property="methodName" column="method_name"/>
+        <result property="annotationText" column="annotation_text"/>
+        <result property="classHash" column="class_hash"/>
+        <result property="classFullName" column="class_full_name"/>
+        <result property="methodFullName" column="method_full_name"/>
+        <result property="status" column="status"/>
+    </resultMap>
+
+    <!--classDetail-->
+    <resultMap type="com.winit.graph.entity.dto.ClassDetailDTO" id="classDetail">
+        <result property="classHash" column="class_hash"/>
+        <result property="classFullName" column="class_full_name"/>
+        <result property="className" column="class_name"/>
+        <result property="annotation" column="annotation_text"/>
+        <result property="appNum" column="app_num"/>
+    </resultMap>
+
+    <!--  graph_app_info  -->
+    <insert id="createGraphJarInfoTable">
+        CREATE TABLE if not exists ${table_name} (
+        id int PRIMARY KEY AUTO_INCREMENT COMMENT '自增的主键id',
+        app_name varchar(100) NOT NULL COMMENT 'app名称',
+        app_version varchar(50) COMMENT 'app的版本号',
+        app_type varchar(10) NOT NULL COMMENT '包的类型，比如jar、war',
+        INDEX idx_ji_app_name(app_name)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='app信息表';
+    </insert>
+
+    <!--  graph_class_call  -->
+    <insert id="createGraphClassCallTable">
+        CREATE TABLE IF NOT EXISTS ${table_name} (
+        id bigint PRIMARY KEY AUTO_INCREMENT COMMENT '自增的主键id',
+        app_num int COMMENT 'app唯一标识，自增id',
+        call_type varchar(10) COMMENT '调用类型',
+        caller_class_hash varchar(30) NOT NULL COMMENT '调用方，类hash',
+        callee_class_hash varchar(30) NOT NULL COMMENT '被调用方，类hash',
+        caller_class_full_name text NOT NULL COMMENT '调用方，完整类名',
+        callee_class_full_name text NOT NULL COMMENT '被调用方，完整类名',
+        INDEX idx_cd_class_hash(caller_class_hash)
+        ) ENGINE = InnoDB CHARSET = utf8 COLLATE utf8_bin COMMENT '类调用关系表';
+    </insert>
+
+    <!-- graph_class_detail -->
+    <insert id="createGraphClassDetailTable">
+        CREATE TABLE IF NOT EXISTS ${table_name} (
+        id bigint PRIMARY KEY AUTO_INCREMENT COMMENT '自增的主键id',
+        app_num int COMMENT 'app唯一标识，自增id',
+        class_hash varchar(30) NOT NULL COMMENT '类hash',
+        class_full_name text NOT NULL COMMENT '完整类名',
+        class_name varchar(255) NOT NULL COMMENT '简单类名',
+        annotation_text text COMMENT '注解内容',
+        INDEX idx_cd_class_hash(class_hash)
+        ) ENGINE = InnoDB CHARSET = utf8 COLLATE utf8_bin COMMENT '类详情表';
+    </insert>
+
+    <!--  graph_method_call  -->
+    <insert id="createGraphMethodCallTable">
+        CREATE TABLE if not exists ${table_name} (
+        id bigint PRIMARY KEY AUTO_INCREMENT COMMENT '序号',
+        app_num int COMMENT 'app唯一标识，自增id',
+        call_type varchar(10) NOT NULL COMMENT '调用类型',
+        caller_method_hash varchar(30) NOT NULL COMMENT '调用方，方法hash',
+        caller_method_line_num int COMMENT '源代码行号',
+        callee_method_hash varchar(30) NOT NULL COMMENT '被调用方，方法hash',
+        method_name varchar(255) NOT NULL COMMENT '简单的方法名',
+        method_full_name text NOT NULL COMMENT '完整方法（类名+方法名+参数）',
+        class_full_name text NOT NULL COMMENT '被调用方，完整类名',
+        class_hash varchar(30) NOT NULL COMMENT '被调用方，类hash',
+        INDEX idx_mc_caller_method_hash(caller_method_hash),
+        INDEX idx_mc_callee_method_hash(callee_method_hash)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='方法调用关系表';
+    </insert>
+
+    <!--  graph_method_detail  -->
+    <insert id="createGraphMethodDetailTable">
+        CREATE TABLE if not exists ${table_name} (
+        id bigint PRIMARY KEY AUTO_INCREMENT COMMENT '自增的主键id',
+        app_num int COMMENT 'app唯一标识，自增id',
+        method_hash varchar(30) NOT NULL COMMENT '方法hash',
+        method_name varchar(255) NOT NULL COMMENT '简单的方法名',
+        method_full_name text NOT NULL COMMENT '完整方法（类名+方法名+参数）',
+        class_full_name varchar(255) NOT NULL COMMENT '完整类名',
+        class_hash varchar(30) NOT NULL COMMENT '类hash',
+        annotation_text text COMMENT '注解内容',
+        INDEX idx_md_method_hash(method_hash),
+        INDEX idx_md_class_hash(class_hash,app_num)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin COMMENT='方法详情表';
+    </insert>
+
+    <delete id="patchDropFormerTable">
+        <if test="list !=null and list.size() > 0">
+            <foreach collection="list" item="item" index="index">
+                DROP TABLE IF EXISTS ${item};
+            </foreach>
+        </if>
+    </delete>
+
+    <delete id="deleteAppInfoByAppNum">
+        delete from graph_app_info
+        where id IN
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </delete>
+
+    <delete id="deleteMethodDetailByAppNum">
+        delete from graph_method_detail
+        where app_num IN
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </delete>
+
+    <delete id="deleteClassCallByAppNum">
+        delete from graph_class_call
+        where app_num IN
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </delete>
+
+    <delete id="deleteClassDetailByAppNum">
+        delete from graph_class_detail
+        where app_num IN
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </delete>
+
+    <delete id="deleteMethodCallByAppNum">
+        delete from graph_method_call
+        where app_num IN
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </delete>
+
+    <delete id="deleteVersionAppInfoByAppNum">
+        delete from graph_app_info_version
+        where id IN
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </delete>
+
+    <delete id="deleteVersionMethodCallByAppNum">
+        delete from graph_method_call_version
+        where app_num IN
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </delete>
+
+    <delete id="deleteVersionMethodDetailByAppNum">
+        delete from graph_method_detail_version
+        where app_num IN
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </delete>
+
+    <delete id="deleteVersionClassCallByAppNum">
+        delete from graph_class_call_version
+        where app_num in
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </delete>
+
+    <delete id="deleteVersionClassDetailByAppNum">
+        delete from graph_class_detail_version
+        where app_num in
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </delete>
+
+    <select id="selectMethodDetailByMethodHash" resultMap="methodRelation">
+        select
+        app_num,
+        method_name,
+        annotation_text,
+        class_hash,
+        class_full_name,
+        method_full_name
+        from graph_method_detail
+        where method_hash = #{method_hash} limit 1;
+    </select>
+
+    <select id="selectDownRelationByMethodHash" resultMap="methodRelation">
+        select
+        call_type,
+        caller_method_line_num,
+        callee_method_hash,
+        method_name,
+        method_full_name,
+        class_hash,
+        class_full_name
+        from graph_method_call
+        where caller_method_hash = #{method_hash};
+    </select>
+
+    <select id="selectUpRelationByMethodHash" resultMap="methodRelation">
+        select
+        app_num,
+        call_type,
+        caller_method_hash,
+        caller_method_line_num
+        from graph_method_call
+        where callee_method_hash = #{method_hash};
+    </select>
+
+    <select id="selectMethodDetailCount" resultType="java.lang.Integer">
+        select count(*)
+        from graph_method_detail
+        <trim prefix="where" prefixOverrides="and|or">
+            <if test="item.classHash !=null">
+                and class_hash = #{item.classHash}
+            </if>
+            <if test="item.appNum !=null">
+                and app_num = #{item.appNum}
+            </if>
+        </trim>
+    </select>
+
+    <select id="selectClassNameInInterface" resultType="java.lang.String">
+        select caller_class_full_name
+        from graph_class_call
+        where callee_class_hash = #{class_hash}
+        and call_type = "ITF"
+    </select>
+
+    <select id="selectClassNameInExtendsFather" resultType="java.lang.String">
+        select callee_class_full_name
+        from graph_class_call
+        where caller_class_hash = #{class_hash}
+        and call_type = "CCS" limit 1
+    </select>
+
+    <select id="selectClassAppNumByClassHash" resultType="java.lang.Integer">
+        select app_num
+        from graph_class_detail
+        where class_hash = #{class_hash} limit 1
+    </select>
+
+    <select id="selectCalleeMethodInfoByMethodHash" resultMap="methodRelation">
+        select
+        method_name,
+        method_full_name,
+        class_full_name,
+        class_hash
+        from graph_method_call
+        where callee_method_hash = #{method_hash} limit 1;
+    </select>
+
+    <select id="selectClassNameInInterfaceImpl" resultType="java.lang.String">
+        select callee_class_full_name
+        from graph_class_call
+        where caller_class_hash = #{class_hash}
+        and call_type = "ITF"
+    </select>
+
+    <select id="selectClassNameInExtendsSon" resultType="java.lang.String">
+        select caller_class_full_name
+        from graph_class_call
+        where callee_class_hash = #{class_hash}
+        and call_type = "CCS"
+    </select>
+
+    <select id="selectVersionDownRelationByMethodHash" resultMap="methodRelation">
+        select
+        call_type,
+        caller_method_line_num,
+        callee_method_hash,
+        method_name,
+        method_full_name,
+        class_hash,
+        class_full_name
+        from graph_method_call_version
+        where caller_method_hash = #{method_hash}
+        and app_num = #{app_num}
+    </select>
+
+    <select id="selectVersionClassNameInInterface" resultType="java.lang.String">
+        select caller_class_full_name
+        from graph_class_call_version
+        where callee_class_hash = #{class_hash}
+        and app_num = #{app_num}
+        and call_type = "ITF"
+    </select>
+
+    <select id="selectVersionMethodDetailByMethodHash" resultMap="methodRelation">
+        select
+        app_num,
+        method_name,
+        annotation_text,
+        class_hash,
+        class_full_name,
+        method_full_name,
+        status
+        from graph_method_detail_version
+        where method_hash = #{method_hash}
+        and app_num = #{app_num}
+        limit 1;
+    </select>
+
+    <select id="selectVersionClassNameInExtendsFather" resultType="java.lang.String">
+        select callee_class_full_name
+        from graph_class_call_version
+        where caller_class_hash = #{class_hash}
+        and app_num = #{app_num}
+        and call_type = "CCS" limit 1
+    </select>
+
+    <select id="selectVersionClassAppNumByClassHash" resultType="java.lang.Integer">
+        select app_num
+        from graph_class_detail_version
+        where class_hash = #{class_hash}
+        and app_num = #{app_num}
+        limit 1
+    </select>
+
+    <select id="selectVersionCalleeMethodInfoByMethodHash" resultMap="methodRelation">
+        select
+        method_name,
+        method_full_name,
+        class_full_name,
+        class_hash
+        from graph_method_call_version
+        where callee_method_hash = #{method_hash}
+        and app_num = #{app_num}
+        limit 1;
+    </select>
+
+    <select id="selectVersionAppNum" resultType="java.lang.Integer">
+        select id from
+        graph_app_info_version
+        where app_name = #{app_name}
+        and app_version = #{app_version}
+        limit 1
+    </select>
+
+    <select id="selectItfCalleeClassNameByCallerClassHash" resultType="java.lang.String">
+        select callee_class_full_name
+        from graph_class_call_version
+        where caller_class_hash = #{class_hash}
+    </select>
+</mapper>

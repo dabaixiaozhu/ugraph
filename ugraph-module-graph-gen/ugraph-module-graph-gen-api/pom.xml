@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>ugraph-module-graph-gen</artifactId>
+        <groupId>com.winit</groupId>
+        <version>${revision}</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>ugraph-module-graph-gen-api</artifactId>
+    <name>${project.artifactId}</name>
+    <description>
+        专门一个模块，来做生成调用关系的逻辑
+    </description>
+
+    <properties>
+        <maven.compiler.source>8</maven.compiler.source>
+        <maven.compiler.target>8</maven.compiler.target>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.winit</groupId>
+            <artifactId>ugraph-common</artifactId>
+            <version>${revision}</version>
+        </dependency>
+    </dependencies>
+</project>

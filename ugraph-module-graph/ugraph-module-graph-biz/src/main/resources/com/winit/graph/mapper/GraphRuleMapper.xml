@@ -1,0 +1,338 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.winit.graph.mapper.GraphRuleMapper">
+    <resultMap type="com.winit.graph.entity.dto.AppFilterRuleDTO" id="appOperateLog">
+        <id property="id" column="id"/>
+        <result property="appName" column="app_name"/>
+        <result property="filterName" column="filter_name"/>
+        <result property="filterType" column="filter_type"/>
+    </resultMap>
+    <resultMap type="com.winit.graph.entity.dto.AppInfoDTO" id="appInfoDTO">
+        <id property="id" column="id"/>
+        <result property="appName" column="app_name"/>
+        <result property="appVersion" column="app_version"/>
+        <result property="appType" column="app_type"/>
+    </resultMap>
+    <resultMap type="com.winit.graph.entity.dto.MethodDetailDTO" id="methodDetailDTO">
+        <id property="id" column="id"/>
+        <result property="appNum" column="app_num"/>
+        <result property="methodHash" column="method_hash"/>
+        <result property="methodName" column="method_name"/>
+        <result property="methodFullName" column="method_full_name"/>
+        <result property="classFullName" column="class_full_name"/>
+        <result property="classHash" column="class_hash"/>
+        <result property="annotation" column="annotation_text"/>
+        <result property="status" column="status"/>
+    </resultMap>
+    <resultMap type="com.winit.graph.entity.dto.ClassDetailDTO" id="classDetail">
+        <result property="id" column="id"/>
+        <result property="classHash" column="class_hash"/>
+        <result property="classFullName" column="class_full_name"/>
+        <result property="className" column="class_name"/>
+        <result property="annotation" column="annotation_text"/>
+        <result property="appNum" column="app_num"/>
+        <result property="status" column="status"/>
+    </resultMap>
+
+    <insert id="insertAppFilterRule">
+        INSERT INTO graph_app_filter_rule
+        (app_name,filter_name,filter_type)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.appName},#{item.filterName},#{item.filterType})
+        </foreach>
+    </insert>
+
+    <update id="updateVersionClassStatus">
+        update graph_class_detail_version
+        set status = #{status}
+        where class_hash in
+        <foreach item="item" index="index" collection="list" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </update>
+
+    <update id="updateVersionMethodStatus">
+        update graph_method_detail_version
+        set status = #{status}
+        where method_hash in
+        <foreach item="item" index="index" collection="list" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </update>
+
+    <delete id="patchDeleteAppFilterRule">
+        delete from graph_app_filter_rule
+        where app_name = #{appName}
+    </delete>
+
+    <select id="selectRuleByAppName" resultType="java.lang.String">
+        select UPPER(filter_name)
+        from graph_app_filter_rule
+        where app_name = #{app_name}
+    </select>
+
+    <select id="selectAppFilterRule" resultMap="appOperateLog">
+        select id,app_name,filter_name,filter_type
+        from graph_app_filter_rule
+        <trim prefix="where" prefixOverrides="and|or">
+            <if test="item.appName !=null">
+                and app_name = #{item.appName}
+            </if>
+            <if test="item.filterName !=null">
+                and filter_name = #{item.filterName}
+            </if>
+            <if test="item.filterType !=null">
+                and filter_type = #{item.filterType}
+            </if>
+        </trim>
+    </select>
+
+    <select id="selectAppFilterRuleCount" resultType="java.lang.Integer">
+        select count(*)
+        from graph_app_filter_rule
+        <trim prefix="where" prefixOverrides="and|or">
+            <if test="item.appName !=null">
+                and app_name = #{item.appName}
+            </if>
+            <if test="item.filterName !=null">
+                and filter_name = #{item.filterName}
+            </if>
+            <if test="item.filterType !=null">
+                and filter_type = #{item.filterType}
+            </if>
+        </trim>
+    </select>
+
+    <select id="selectAppInfo" resultMap="appInfoDTO">
+        select id,app_version,app_name,app_type
+        from graph_app_info
+        <trim prefix="where" prefixOverrides="and|or">
+            <if test="item.appVersion !=null">
+                and app_version = #{item.appVersion}
+            </if>
+            <if test="item.appName !=null">
+                and app_name = #{item.appName}
+            </if>
+        </trim>
+        order by id
+    </select>
+
+    <select id="selectAppVersionInfo" resultMap="appInfoDTO">
+        select id,app_version,app_name,app_type
+        from graph_app_info_version
+        <trim prefix="where" prefixOverrides="and|or">
+            <if test="item.appVersion !=null">
+                and app_version = #{item.appVersion}
+            </if>
+            <if test="item.appName !=null">
+                and app_name = #{item.appName}
+            </if>
+        </trim>
+        order by id
+    </select>
+
+    <select id="selectAppInfoVersion" resultMap="appInfoDTO">
+        select id,app_version,app_name,app_type
+        from graph_app_info_version
+        <trim prefix="where" prefixOverrides="and|or">
+            <if test="item.appVersion !=null">
+                and app_version = #{item.appVersion}
+            </if>
+            <if test="item.appName !=null">
+                and app_name = #{item.appName}
+            </if>
+        </trim>
+        order by id
+    </select>
+
+    <select id="selectTrunkMethodDetailInClass" resultMap="methodDetailDTO">
+        select * from
+        graph_method_detail
+        <trim prefix="where" prefixOverrides="and|or">
+            <if test="item.classHash !=null">
+                and class_hash = #{item.classHash}
+            </if>
+            <if test="item.appNum !=null">
+                and app_num = #{item.appNum}
+            </if>
+        </trim>
+    </select>
+
+    <select id="selectTrunkClassDetail" resultMap="classDetail">
+        select * from
+        graph_class_detail
+        <trim prefix="where" prefixOverrides="and|or">
+            <if test="item.classHash !=null">
+                and class_hash = #{item.classHash}
+            </if>
+            <if test="item.appNum !=null">
+                and app_num = #{item.appNum}
+            </if>
+        </trim>
+        limit 1
+    </select>
+    <select id="selectTrunkAppNumByAppName" resultType="java.lang.Integer">
+        select id
+        from graph_app_info
+        <trim prefix="where" prefixOverrides="and|or">
+            <if test="item.appVersion !=null">
+                and app_version = #{item.appVersion}
+            </if>
+            <if test="item.appName !=null">
+                and app_name = #{item.appName}
+            </if>
+        </trim>
+        order by id
+    </select>
+
+    <select id="selectTrunkClassDetailInApp" resultMap="classDetail">
+        select * from
+        graph_class_detail
+        <trim prefix="where" prefixOverrides="and|or">
+            <if test="item.classHash !=null">
+                and class_hash = #{item.classHash}
+            </if>
+            <if test="item.appNum !=null">
+                and app_num = #{item.appNum}
+            </if>
+            <if test="item.classFullName !=null">
+                and upper(class_full_name) LIKE CONCAT('%',#{item.classFullName},'%')
+            </if>
+        </trim>
+        limit 50
+    </select>
+
+    <select id="selectAppInfoCountByAppName" resultType="java.lang.Integer">
+        select count(*) from
+        graph_app_info
+        where app_name = #{appName}
+    </select>
+
+    <select id="selectTrunkAppNumByAppNameAndVersion" resultType="java.lang.Integer">
+        select id from graph_app_info
+        where app_name = #{appName} limit 1
+    </select>
+
+    <select id="selectVersionAppNumByAppNameAndVersion" resultType="java.lang.Integer">
+        select id from graph_app_info_version
+        where app_name = #{appName} and app_version = #{version}
+        limit 1
+    </select>
+
+    <select id="selectTrunkClassHashByAppNum" resultType="java.lang.String">
+        select distinct class_hash from graph_class_detail
+        where app_num = #{appNum}
+    </select>
+
+    <select id="selectVersionClassHashByAppNum" resultType="java.lang.String">
+        select distinct class_hash from graph_class_detail_version
+        where app_num = #{appNum}
+    </select>
+
+    <select id="selectTrunkMethodByAppNum" resultType="java.lang.String">
+        select distinct method_hash from graph_method_detail
+        where app_num = #{appNum}
+    </select>
+
+    <select id="selectVersionMethodByAppNum" resultType="java.lang.String">
+        select distinct method_hash from graph_method_detail_version
+        where app_num = #{appNum}
+    </select>
+
+    <select id="selectTrunkDownMethodCallByAppNumAndMethodHash" resultType="java.lang.String">
+        select callee_method_hash
+        from graph_method_call
+        where app_num = #{appNum}
+        and caller_method_hash = #{methodHash}
+        order by id asc
+    </select>
+
+    <select id="selectVersionDownMethodCallByAppNumAndMethodHash" resultType="java.lang.String">
+        select callee_method_hash
+        from graph_method_call_version
+        where app_num = #{appNum}
+        and caller_method_hash = #{methodHash}
+        order by id asc
+    </select>
+
+    <select id="selectVersionUpMethodCallByAppNumAndMethodHash" resultType="java.lang.String">
+        select caller_method_hash
+        from graph_method_call_version
+        where app_num = #{appNum}
+        and callee_method_hash = #{methodHash}
+        order by id asc
+    </select>
+
+    <select id="selectVersionClassHashByMethodHashList" resultType="java.lang.String">
+        select distinct class_hash from graph_method_detail_version
+        <where>
+            <foreach collection="list" separator="or" item="item">
+                method_hash = #{item}
+            </foreach>
+        </where>
+    </select>
+
+    <select id="selectVersionMethodDetailByMethodHashAndAppNum" resultMap="methodDetailDTO">
+        select * from
+        graph_method_detail_version
+        <trim prefix="where" prefixOverrides="and|or">
+            <if test="methodHash !=null">
+                and method_hash = #{methodHash}
+            </if>
+            <if test="appNum !=null">
+                and app_num = #{appNum}
+            </if>
+        </trim>
+    </select>
+    <select id="selectVersionClassDetail" resultMap="classDetail">
+        select * from
+        graph_class_detail_version
+        <trim prefix="where" prefixOverrides="and|or">
+            <if test="item.classHash !=null">
+                and class_hash = #{item.classHash}
+            </if>
+            <if test="item.appNum !=null">
+                and app_num = #{item.appNum}
+            </if>
+        </trim>
+        limit 1
+    </select>
+    <select id="selectVersionClassDetailInApp" resultMap="classDetail">
+        select * from
+        graph_class_detail_version
+        <trim prefix="where" prefixOverrides="and|or">
+            <if test="item.classHash !=null">
+                and class_hash = #{item.classHash}
+            </if>
+            <if test="item.appNum !=null">
+                and app_num = #{item.appNum}
+            </if>
+            <if test="item.classFullName !=null">
+                and upper(class_full_name) LIKE CONCAT('%',#{item.classFullName},'%')
+            </if>
+        </trim>
+        limit 50
+    </select>
+
+    <select id="selectVersionMethodDetailInClass" resultMap="methodDetailDTO">
+        select * from
+        graph_method_detail_version
+        <trim prefix="where" prefixOverrides="and|or">
+            <if test="item.classHash !=null">
+                and class_hash = #{item.classHash}
+            </if>
+            <if test="item.appNum !=null">
+                and app_num = #{item.appNum}
+            </if>
+        </trim>
+    </select>
+
+    <select id="selectVersionAppNumByAppName" resultType="java.lang.Integer">
+        select id
+        from graph_app_info_version
+        where app_name = #{appName}
+        order by id
+    </select>
+</mapper>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>ugraph-module-graph</artifactId>
+        <groupId>com.winit</groupId>
+        <version>${revision}</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>ugraph-module-graph-api</artifactId>
+    <name>${project.artifactId}</name>
+    <description>
+        graph 模块的对外api，没有对外提供的api还是在内部实现的。
+    </description>
+
+    <properties>
+        <maven.compiler.source>8</maven.compiler.source>
+        <maven.compiler.target>8</maven.compiler.target>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.winit</groupId>
+            <artifactId>ugraph-common</artifactId>
+            <version>${revision}</version>
+        </dependency>
+    </dependencies>
+</project>

@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.winit.graphgen.mapper.GraphGenMapper">
+
+    <insert id="patchInsertMethodCall">
+        INSERT INTO graph_method_call
+        (call_type,
+        caller_method_hash,callee_method_hash,app_num,caller_method_line_num,method_name,method_full_name,class_hash,class_full_name)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.callType},
+            #{item.callerMethodHash},#{item.calleeMethodHash},#{item.appNum},#{item.callerMethodLineNum},#{item.methodName},#{item.methodFullName},#{item.classHash},#{item.classFullName})
+        </foreach>
+    </insert>
+
+    <insert id="patchInsertMethodDetail">
+        INSERT INTO graph_method_detail
+        (method_hash,method_name,method_full_name,class_full_name,class_hash,app_num,annotation_text)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.methodHash},#{item.methodName},#{item.methodFullName},#{item.classFullName},#{item.classHash},#{item.appNum},#{item.annotationText})
+        </foreach>
+    </insert>
+
+    <insert id="insertAppInfo" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO graph_app_info
+        (app_name,app_version,app_type)
+        VALUES
+        (#{item.appName},#{item.appVersion},#{item.appType})
+    </insert>
+
+    <insert id="patchInsertClassCall">
+        INSERT INTO graph_class_call
+        (caller_class_hash ,callee_class_hash ,callee_class_full_name,caller_class_full_name,app_num,call_type)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.callerClassHash},#{item.calleeClassHash},#{item.calleeClassFullName},#{item.callerClassFullName},#{item.appNum},#{item.callType})
+        </foreach>
+    </insert>
+
+    <insert id="patchInsertClassDetail">
+        INSERT INTO graph_class_detail
+        (class_hash ,class_full_name ,class_name,app_num,annotation_text)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.classHash},#{item.classFullName},#{item.className},#{item.appNum},#{item.annotationText})
+        </foreach>
+    </insert>
+
+    <insert id="patchInsertMethodDetailVersion">
+        INSERT INTO graph_method_detail_version
+        (method_hash,method_name,method_full_name,class_full_name,class_hash,app_num,annotation_text)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.methodHash},#{item.methodName},#{item.methodFullName},#{item.classFullName},#{item.classHash},#{item.appNum},#{item.annotationText})
+        </foreach>
+    </insert>
+
+    <insert id="patchInsertMethodCallVersion">
+        INSERT INTO graph_method_call_version
+        (call_type,
+        caller_method_hash,callee_method_hash,app_num,caller_method_line_num,method_name,method_full_name,class_hash,class_full_name)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.callType},
+            #{item.callerMethodHash},#{item.calleeMethodHash},#{item.appNum},#{item.callerMethodLineNum},#{item.methodName},#{item.methodFullName},#{item.classHash},#{item.classFullName})
+        </foreach>
+    </insert>
+
+    <insert id="patchInsertClassCallVersion">
+        INSERT INTO graph_class_call_version
+        (caller_class_hash ,callee_class_hash ,callee_class_full_name,caller_class_full_name,app_num,call_type)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.callerClassHash},#{item.calleeClassHash},#{item.calleeClassFullName},#{item.callerClassFullName},#{item.appNum},#{item.callType})
+        </foreach>
+    </insert>
+
+    <insert id="patchInsertClassDetailVersion">
+        INSERT INTO graph_class_detail_version
+        (class_hash ,class_full_name ,class_name,app_num,annotation_text)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.classHash},#{item.classFullName},#{item.className},#{item.appNum},#{item.annotationText})
+        </foreach>
+    </insert>
+
+    <insert id="insertAppInfoVersion" useGeneratedKeys="true" keyProperty="id">
+            INSERT INTO graph_app_info_version
+            (app_name,app_version,app_type)
+            VALUES
+            (#{item.appName},#{item.appVersion},#{item.appType})
+    </insert>
+</mapper>

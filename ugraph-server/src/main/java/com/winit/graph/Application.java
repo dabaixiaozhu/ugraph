@@ -1,7 +1,6 @@
 package com.winit.graph;
 
 
-import com.ctrip.framework.apollo.spring.annotation.EnableApolloConfig;
 import com.winit.graph.config.DruidDataSourceConfig;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
@@ -21,7 +20,6 @@ import org.springframework.context.annotation.Import;
 @MapperScan(basePackages = {"com.winit.graph.mapper", "com.winit.graphgen.mapper"})
 @ComponentScan("com.winit")
 @Import(DruidDataSourceConfig.class)
-//@EnableApolloConfig
 public class Application {
 
     public static void main(String[] args) {
